@@ -1,0 +1,20 @@
+// review logon activity for past 30 days
+DeviceLogonEvents
+| where TimeGenerated > ago(30d)
+| where ActionType == "LogonFailed"
+| summarize failed_logons = count() by DeviceName, RemoteIP, ActionType
+| order by failed_logons desc 
+
+// isolate DeviceName and RemoteIP to confirm no successful logons
+DeviceLogonEvents
+| where TimeGenerated > ago(30d)
+| where DeviceName == "linux-target-1.p2zfvso05mlezjev3ck4vqd3kd.cx.internal.cloudapp.net"
+| where RemoteIP == "218.92.0.187"
+| project DeviceName, ActionType
+//| distinct ActionType
+
+// check for malicious outbound traffic from isolated DeviceName
+DeviceNetworkEvents
+| where TimeGenerated > ago(30d)
+| where DeviceName == "linux-target-1.p2zfvso05mlezjev3ck4vqd3kd.cx.internal.cloudapp.net"
+| where RemoteIP == "218.92.0.187"
